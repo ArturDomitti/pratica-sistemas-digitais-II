@@ -10,343 +10,251 @@
 |   Lucas Mello Ciosaki       	      |  14591305 |   
 |   Lucas Alves da Silva		         |  11819553  | 
 
-### PART I
-
-[RTL VIEWER FOR PART I](./part1b.pdf)
+### PART I e II
 
 VHDL CODE
 
-```
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
-
-ENTITY eightbits_synchronous_counter is
-	PORT(
-		Enable, Clock, clear : in STD_LOGIC;
-		 h00, h01, h02, h03, h04, h05, h06, h10, h11, h12, h13, h14, h15, h16: out STD_LOGIC
-	);
-	
-end eightbits_synchronous_counter;
-
-architecture Structural of eightbits_synchronous_counter is
-	signal a1, a2, a3, a4, a5, a6, a7, os1, os2, os3, os4, os5, os6, os7, o1, no1, o2, no2, o3, no3, o4, no4, o5, no5, o6, no6, o7, no7, o8, no8 : STD_LOGIC;
-	
-	component t_flip_flop
-		port	(Clk, T, clear: in STD_LOGIC;
-				Q, Qn: out STD_LOGIC);
-				
-	end component;
-	
-	component seven_segments
-		port (A, B, C, D: in STD_LOGIC;
-			L0, L1, L2, L3, L4, L5, L6: out STD_LOGIC);
-			
-	end component;
-	
-	
-	begin
-		
-		t1: t_flip_flop
-			port map (
-				T => Enable,
-				Clk => Clock,
-				clear => clear,
-				Q => os1,
-				Qn => no1
-			);
-		
-		a1 <= os1 and Enable;
-		o1 <= os1;
-		
-		t2: t_flip_flop
-			port map (
-				T => a1,
-				Clk => Clock,
-				clear => clear,
-				Q => os2,
-				Qn => no2
-			);
-			
-		a2 <= os2 and a1;	
-		o2 <= os2;
-		
-		t3: t_flip_flop
-			port map (
-				T => a2,
-				Clk => Clock,
-				clear => clear,
-				Q => os3,
-				Qn => no3
-			);
-			
-		a3 <= os3 and a2;
-		o3 <= os3;
-		
-		t4: t_flip_flop
-			port map (
-				T => a3,
-				Clk => Clock,
-				clear => clear,
-				Q => os4,
-				Qn => no4
-			);
-			
-		a4 <= os4 and a3;
-		o4 <= os4;
-		
-		t5: t_flip_flop
-			port map (
-				T => a4,
-				Clk => Clock,
-				clear => clear,
-				Q => os5,
-				Qn => no5
-			);
-			
-		a5 <= os5 and a4;
-		o5 <= os5;
-		
-		t6: t_flip_flop
-			port map (
-				T => a5,
-				Clk => Clock,
-				clear => clear,
-				Q => os6,
-				Qn => no6
-			);
-			
-		a6 <= os6 and a5;
-		o6 <= os6;
-		
-		t7: t_flip_flop
-			port map (
-				T => a6,
-				Clk => Clock,
-				clear => clear,
-				Q => os7,
-				Qn => no7
-			);
-			
-		a7 <= os7 and a6;
-		o7 <= os7;
-		
-		t8: t_flip_flop
-			port map (
-				T => a7,
-				Clk => Clock,
-				clear => clear,
-				Q => o8,
-				Qn => no8
-			);
-			
-		hex0: seven_segments
-			port map(
-				D => o1,
-				C => o2,
-				B => o3,
-				A => o4,
-				L0 => h00,
-				L1 => h01,
-				L2 => h02,
-				L3 => h03,
-				L4 => h04,
-				L5 => h05,
-				L6 => h06
-				
-			);
-			
-		hex1: seven_segments
-			port map(
-				D => o5,
-				C => o6,
-				B => o7,
-				A => o8,
-				L0 => h10,
-				L1 => h11,
-				L2 => h12,
-				L3 => h13,
-				L4 => h14,
-				L5 => h15,
-				L6 => h16
-				
-			);
-END Structural;
-```
-
-T FLIP-FLOP
-```
-LIBRARY ieee;
-USE ieee.std_logic_1164.ALL;
-
-ENTITY t_flip_flop is
-	PORT (T, Clk, clear: IN STD_LOGIC;
-			Q, Qn: OUT STD_LOGIC);
-END t_flip_flop;
-
-architecture Behavioral of t_flip_flop is
-signal qb: STD_LOGIC;
-
-begin
-	
-	
-	process(T, Clk)
-	begin
-
-		if clear = '1' THEN
-			qb <= '0';
-			
-		ELSIF rising_edge(Clk) THEN
-			if T = '1' THEN
-				qb <= NOT qb;
-			END IF;
-		END IF;
-		
-		Q <= qb;
-		Qn <= not qb;
-	end process;
-
-end Behavioral;
-```
-
-### PART II
-
-[RTL VIEWER FOR PART II](./part2b.pdf)
-
-VHDL CODE 
-
-```
-library ieee;
-use ieee.std_logic_1164.all;
-
-entity top_level is
-    port (
-        CLK     : in std_logic;
-        ENABLE  : in std_logic;
-        CLEAR   : in std_logic;
-        HEX0    : out std_logic_vector(6 downto 0);
-        HEX1    : out std_logic_vector(6 downto 0);
-        HEX2    : out std_logic_vector(6 downto 0);
-        HEX3    : out std_logic_vector(6 downto 0)
-    );
-end top_level;
-
-architecture Behavioral of top_level is
-    signal count : std_logic_vector(15 downto 0);
-    signal hex_digits : std_logic_vector(15 downto 0);
-begin
-    counter: entity work.counter16bits
-        port map (
-            CLK     => CLK,
-            ENABLE  => ENABLE,
-            CLEAR   => CLEAR,
-            COUNT   => count
-        );
-
-    D_hex0: entity work.hex_to_7seg
-        port map (
-            hex_digit => count(3 downto 0),
-            seg       => HEX0
-        );
-
-    D_hex1: entity work.hex_to_7seg
-        port map (
-            hex_digit => count(7 downto 4),
-            seg       => HEX1
-        );
-
-    D_hex2: entity work.hex_to_7seg
-        port map (
-            hex_digit => count(11 downto 8),
-            seg       => HEX2
-        );
-
-    D_hex3: entity work.hex_to_7seg
-        port map (
-            hex_digit => count(15 downto 12),
-            seg       => HEX3
-        );
-end Behavioral;
-```
-
-### PART III
-
-[RTL VIEWER FOR PART III](./part3b.pdf)
-
-VHDL CODE
 ```
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.STD_LOGIC_ARITH.ALL;
 use IEEE.STD_LOGIC_UNSIGNED.ALL;
 
-entity flashingNumbers is
-port (
-			clk	: in STD_LOGIC;
-			rst	: in STD_LOGIC;
-			seg	: out STD_LOGIC_VECTOR(6 downto 0)
-);
+ENTITY top_level IS
+    PORT(
+         address		: IN STD_LOGIC_VECTOR (4 DOWNTO 0);
+			clock		: IN STD_LOGIC  := '1';
+			data		: IN STD_LOGIC_VECTOR (3 DOWNTO 0);
+			wren		: IN STD_LOGIC ;
+			seg   : OUT STD_LOGIC_VECTOR (6 downto 0);
+			seg1   : OUT STD_LOGIC_VECTOR (6 downto 0);
+			seg2  : OUT STD_LOGIC_VECTOR (6 downto 0);
+			seg3   : OUT STD_LOGIC_VECTOR (6 downto 0)
+    );
+END top_level;
 
-end flashingNumbers;
+ARCHITECTURE Behavioral OF top_level IS
+	signal dataout : std_logic_vector(3 downto 0) := (others => '0');
+	signal datain : std_logic_vector(3 downto 0) := (others => '0');
+	signal addr_seg1 : std_logic_vector(3 downto 0) := (others => '0');
+	signal addr_seg2 : std_logic := '0';
+	
+	COMPONENT ram32x4
+		PORT(
+		address		: IN STD_LOGIC_VECTOR (4 DOWNTO 0);
+		clock		: IN STD_LOGIC  := '1';
+		data		: IN STD_LOGIC_VECTOR (3 DOWNTO 0);
+		wren		: IN STD_LOGIC ;
+		q		: OUT STD_LOGIC_VECTOR (3 DOWNTO 0)
+	);
+	END COMPONENT;
 
-architecture Behavioral of flashingNumbers is
-	signal large_counter : unsigned(25 downto 0) := (others => '0');
-	signal small_counter : unsigned(3 downto 0) := (others => '0');
-	signal enable : STD_LOGIC := '0';
+BEGIN
+	ram : ram32x4
+		PORT MAP (
+            address => address,           
+            clock   => clock,
+				wren => wren,
+				data => data,
+				q => dataout
+        );
+		  
+		  process(dataout, datain, addr_seg1, addr_seg2)
+		  begin
+			  addr_seg1 <= address(3 downto 0);
+			  addr_seg2 <= address(4);
+			  datain <= data;
+		   case datain is
+					when "0000" => seg <= "1000000"; -- 0
+					when "0001" => seg <= "1111001"; -- 1
+					when "0010" => seg <= "0100100"; -- 2
+					when "0011" => seg <= "0110000"; -- 3
+					when "0100" => seg <= "0011001"; -- 4
+					when "0101" => seg <= "0010010"; -- 5
+					when "0110" => seg <= "0000010"; -- 6
+					when "0111" => seg <= "1111000"; -- 7
+					when "1000" => seg <= "0000000"; -- 8
+					when "1001" => seg <= "0010000"; -- 9
+					when "1010" => seg <= "0001000"; -- A
+					when "1011" => seg <= "0000011"; -- B
+					when "1100" => seg <= "1000110"; -- C
+					when "1101" => seg <= "0100001"; -- D
+					when "1110" => seg <= "0000110"; -- E
+					when "1111" => seg <= "0001110"; -- F
+					when others => seg <= "1111111"; 
+			  end case;
+			  
+			  case dataout is
+					when "0000" => seg1 <= "1000000"; -- 0
+					when "0001" => seg1 <= "1111001"; -- 1
+					when "0010" => seg1 <= "0100100"; -- 2
+					when "0011" => seg1 <= "0110000"; -- 3
+					when "0100" => seg1 <= "0011001"; -- 4
+					when "0101" => seg1 <= "0010010"; -- 5
+					when "0110" => seg1 <= "0000010"; -- 6
+					when "0111" => seg1 <= "1111000"; -- 7
+					when "1000" => seg1 <= "0000000"; -- 8
+					when "1001" => seg1 <= "0010000"; -- 9
+					when "1010" => seg1 <= "0001000"; -- A
+					when "1011" => seg1 <= "0000011"; -- B
+					when "1100" => seg1 <= "1000110"; -- C
+					when "1101" => seg1 <= "0100001"; -- D
+					when "1110" => seg1 <= "0000110"; -- E
+					when "1111" => seg1 <= "0001110"; -- F
+					when others => seg1 <= "1111111"; 
+			  end case;
+			  
+			  case addr_seg1 is
+					when "0000" => seg2 <= "1000000"; -- 0
+					when "0001" => seg2 <= "1111001"; -- 1
+					when "0010" => seg2 <= "0100100"; -- 2
+					when "0011" => seg2 <= "0110000"; -- 3
+					when "0100" => seg2 <= "0011001"; -- 4
+					when "0101" => seg2 <= "0010010"; -- 5
+					when "0110" => seg2 <= "0000010"; -- 6
+					when "0111" => seg2 <= "1111000"; -- 7
+					when "1000" => seg2 <= "0000000"; -- 8
+					when "1001" => seg2 <= "0010000"; -- 9
+					when "1010" => seg2 <= "0001000"; -- A
+					when "1011" => seg2 <= "0000011"; -- B
+					when "1100" => seg2 <= "1000110"; -- C
+					when "1101" => seg2 <= "0100001"; -- D
+					when "1110" => seg2 <= "0000110"; -- E
+					when "1111" => seg2 <= "0001110"; -- F
+					when others => seg2 <= "1111111"; 
+			  end case;
+			  
+			  case addr_seg2 is
+					when '0' => seg3 <= "1000000"; -- 0
+					when '1' => seg3 <= "1111001"; -- 1
+			  end case;
+		  end process;
 	
+END Behavioral;
+```
+
+### PART III e IV
+
+VHDL CODE 
+
+```
+LIBRARY IEEE;
+USE IEEE.STD_LOGIC_1164.ALL;
+
+USE IEEE.NUMERIC_STD.ALL;
+
+
+Entity memory_array is
+	PORT ( 
+			address : IN UNSIGNED (4 DOWNTO 0);
+			clock : IN STD_LOGIC := '1';
+			data : IN STD_LOGIC_VECTOR (3 DOWNTO 0);
+			wren : IN STD_LOGIC ;
+			q : OUT STD_LOGIC_VECTOR (6 DOWNTO 0);
+			ad_out1 : out std_logic_vector(6 downto 0);
+			ad_out0 : out std_logic_vector(6 downto 0);
+			data_out : out std_logic_vector(6 downto 0)
+			
+		);
+		
+END memory_array;
+
+Architecture Behavioral of memory_array is
+	TYPE mem IS ARRAY(0 TO 31) OF STD_LOGIC_VECTOR(3 DOWNTO 0);
+	SIGNAL memory : mem;
+	SIGNAL address_id: INTEGER :=0;
+	SIGNAL q_res: std_logic_vector(3 downto 0) := (others => '0');
+	SIGNAL ad_p0: UNSIGNED(3 downto 0) := (others => '0');
+	SIGNAL ad_p1: std_logic := '0';
 	
-begin
-	process(clk, rst)
-		begin
-		if rst = '1' then
-			large_counter <= (others => '0');
-			enable <= '0';
-		elsif rising_edge(clk) then
-			if large_counter = 49999999 then
-				large_counter <= (others => '0');
-				enable <= '1';
-			else
-				large_counter <= large_counter + 1;
-				enable <= '0';
-			end if;
-		end if;
-	end process;
-	
-	process(clk,rst)
-		begin
-		if rst = '1' then
-			small_counter <= (others => '0');
-		elsif rising_edge(clk) then
-			if enable = '1' then
-				if small_counter = 9 then
-					small_counter <= (others => '0');
-				else
-					small_counter <= small_counter + 1;
-				end if;
-			end if;
-		end if;
-	end process;
-	
-	process(small_counter)
 	begin
-      case small_counter is
-            when "0000" => seg <= "1000000";
-            when "0001" => seg <= "1111001";  
-            when "0010" => seg <= "0100100";
-            when "0011" => seg <= "0110000";
-            when "0100" => seg <= "0011001";
-            when "0101" => seg <= "0010010";
-            when "0110" => seg <= "0000010";
-            when "0111" => seg <= "1111000";
-            when "1000" => seg <= "0000000";
-            when "1001" => seg <= "0010000";
-            when "1010" => seg <= "0001000";
-            when "1011" => seg <= "0000011";
-            when "1100" => seg <= "1000110";
-            when "1101" => seg <= "0100001";
-            when "1110" => seg <= "0000110";
-            when "1111" => seg <= "0001110";
-            when others => seg <= "1111111"; 
-        end case;
-    end process;
+	
+	
+	process(clock, address, data, wren)
+	begin
+		if(rising_edge(clock)) then
+			address_id <= to_integer(unsigned(address));
+			if(wren = '1') then
+				memory(address_id) <= data;
+			end if;
+			
+			q_res <= memory(address_id);
+			
+			case q_res is
+					when "0000" => q <= "1000000"; -- 0
+					when "0001" => q <= "1111001"; -- 1
+					when "0010" => q <= "0100100"; -- 2
+					when "0011" => q <= "0110000"; -- 3
+					when "0100" => q <= "0011001"; -- 4
+					when "0101" => q <= "0010010"; -- 5
+					when "0110" => q <= "0000010"; -- 6
+					when "0111" => q <= "1111000"; -- 7
+					when "1000" => q <= "0000000"; -- 8
+					when "1001" => q <= "0010000"; -- 9
+					when "1010" => q <= "0001000"; -- A
+					when "1011" => q <= "0000011"; -- B
+					when "1100" => q <= "1000110"; -- C
+					when "1101" => q <= "0100001"; -- D
+					when "1110" => q <= "0000110"; -- E
+					when "1111" => q <= "0001110"; -- F
+					when others => q <= "1111111"; 
+			  end case;
+			  
+			  ad_p0 <= address(3 downto 0);
+			  ad_p1 <= address(4);
+			  
+			  
+			  case ad_p0 is
+					when "0000" => ad_out0 <= "1000000"; -- 0
+					when "0001" => ad_out0 <= "1111001"; -- 1
+					when "0010" => ad_out0 <= "0100100"; -- 2
+					when "0011" => ad_out0 <= "0110000"; -- 3
+					when "0100" => ad_out0 <= "0011001"; -- 4
+					when "0101" => ad_out0 <= "0010010"; -- 5
+					when "0110" => ad_out0 <= "0000010"; -- 6
+					when "0111" => ad_out0 <= "1111000"; -- 7
+					when "1000" => ad_out0 <= "0000000"; -- 8
+					when "1001" => ad_out0 <= "0010000"; -- 9
+					when "1010" => ad_out0 <= "0001000"; -- A
+					when "1011" => ad_out0 <= "0000011"; -- B
+					when "1100" => ad_out0 <= "1000110"; -- C
+					when "1101" => ad_out0 <= "0100001"; -- D
+					when "1110" => ad_out0 <= "0000110"; -- E
+					when "1111" => ad_out0 <= "0001110"; -- F
+					when others => ad_out0 <= "1111111"; 
+			  end case;
+			  
+			  case ad_p1 is
+					when '0' => ad_out1 <= "1000000"; -- 0
+					when '1' => ad_out1 <= "1111001"; -- 1
+		
+			  end case;
+			
+			case data is
+					when "0000" => data_out <= "1000000"; -- 0
+					when "0001" => data_out <= "1111001"; -- 1
+					when "0010" => data_out <= "0100100"; -- 2
+					when "0011" => data_out <= "0110000"; -- 3
+					when "0100" => data_out <= "0011001"; -- 4
+					when "0101" => data_out <= "0010010"; -- 5
+					when "0110" => data_out <= "0000010"; -- 6
+					when "0111" => data_out <= "1111000"; -- 7
+					when "1000" => data_out <= "0000000"; -- 8
+					when "1001" => data_out <= "0010000"; -- 9
+					when "1010" => data_out <= "0001000"; -- A
+					when "1011" => data_out <= "0000011"; -- B
+					when "1100" => data_out <= "1000110"; -- C
+					when "1101" => data_out <= "0100001"; -- D
+					when "1110" => data_out <= "0000110"; -- E
+					when "1111" => data_out <= "0001110"; -- F
+					when others => data_out <= "1111111"; 
+			  end case;
+			
+			
+		
+		end if;	
+	
+	end process;
+	
 end Behavioral;
 ```
